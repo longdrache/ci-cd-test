@@ -8,7 +8,7 @@ const TOPIC = process.env.KAFKA_TOPIC || "demo.events";
 // POST /events -> publish an arbitrary event payload to Kafka
 router.post("/", async (req, res) => {
   const { type, data } = req.body;
-
+  console.log("[producer-service] Received event:", { type, data });
   const correlationId = req.headers["kong-id"] || uuidv4();
   if (!type) {
     return res.status(400).json({ message: "'type' is required" });
