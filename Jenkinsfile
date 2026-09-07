@@ -41,12 +41,15 @@ pipeline {
 
         stage('Push Images') {
             steps {
-                sh '''
-                    docker push ${DOCKER_REGISTRY}/producer-service:${IMAGE_TAG}
-                    docker push ${DOCKER_REGISTRY}/consumer-service:${IMAGE_TAG}
-                    docker push ${DOCKER_REGISTRY}/python-producer-service:${IMAGE_TAG}
-                    docker push ${DOCKER_REGISTRY}/go-consumer-service:${IMAGE_TAG}
-                '''
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh '''
+                        docker push ${DOCKER_REGISTRY}/producer-service:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/consumer-service:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/python-producer-service:${IMAGE_TAG}
+                        docker push ${DOCKER_REGISTRY}/go-consumer-service:${IMAGE_TAG}
+                    '''
+                }
             }
         }
 
