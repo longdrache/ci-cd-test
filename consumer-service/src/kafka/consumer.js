@@ -10,11 +10,11 @@ async function subscribeWithRetry(maxAttempts = 8, delayMs = 2000) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       await consumer.subscribe({ topic: TOPIC, fromBeginning: true });
-      console.log(`[consumer-service] Subscribed to topic "${TOPIC}"`);
+      console.log(`[consumer-service] Subscribesd to topic "${TOPIC}"`);
       return;
     } catch (err) {
       console.warn(
-        `[consumer-service] Subscribe attempt ${attempt}/${maxAttempts} failed (${err.message}). Retrying in ${delayMs}ms...`
+        `[consumer-service] Subscribe attempt ${attempt}/${maxAttempts} failed (${err.message}). Retrying in ${delayMs}ms...`,
       );
       if (attempt === maxAttempts) throw err;
       await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -42,7 +42,7 @@ async function startConsumer() {
 
       console.log(
         `[consumer-service] Received event on "${topic}" (partition ${partition}, offset ${message.offset}):`,
-        event
+        event,
       );
 
       // TODO: put real business logic here (save to DB, trigger side effects, etc.)
