@@ -133,26 +133,3 @@ jobs:
 
       - name: Verify images
         run: docker images | grep -E "(producer|consumer|python-producer|go-consumer)"
-
-  # Job 6: Deploy to production (requires manual approval)
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [docker-build]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: production
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy services
-        run: |
-          echo "Deploying all services to production..."
-          docker compose -f docker-compose.yml up -d --force-recreate
-
-      - name: Verify deployment
-        run: |
-          echo "Waiting for services to start..."
-          sleep 10
-          docker compose ps
