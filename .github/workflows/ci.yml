@@ -1,0 +1,139 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Job 1: Build and Test producer-service (Node.js)
+  producer-service:
+    name: Producer Service (Node.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./producer-service
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: producer-service/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint --if-present
+
+      - name: Build Docker image
+        run: docker build -t producer-service:${{ github.sha }} .
+
+  # Job 2: Build and Test consumer-service (Node.js)
+  consumer-service:
+    name: Consumer Service (Node.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./consumer-service
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: consumer-service/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint --if-present
+
+      - name: Build Docker image
+        run: docker build -t consumer-service:${{ github.sha }} .
+
+  # Job 3: Build and Test python-producer-service (Python)
+  python-producer-service:
+    name: Python Producer Service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./python-producer-service
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8 pytest
+
+      - name: Run lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Build Docker image
+        run: docker build -t python-producer-service:${{ github.sha }} .
+
+  # Job 4: Build and Test go-consumer-service (Go)
+  go-consumer-service:
+    name: Go Consumer Service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./go-consumer-service
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run vet
+        run: go vet ./...
+
+      - name: Build Docker image
+        run: docker build -t go-consumer-service:${{ github.sha }} .
+
+  # Job 5: Build all services with Docker Compose
+  docker-build:
+    name: Docker Compose Build
+    runs-on: ubuntu-latest
+    needs: [producer-service, consumer-service, python-producer-service, go-consumer-service]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build all services
+        run: docker compose build
+
+      - name: Verify images
+        run: docker images | grep -E "(producer|consumer|python-producer|go-consumer)"

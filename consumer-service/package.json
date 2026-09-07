@@ -1,0 +1,16 @@
+{
+  "name": "consumer-service",
+  "version": "1.0.0",
+  "description": "Kafka consumer-only service (KafkaJS, no HTTP API needed)",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

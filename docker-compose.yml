@@ -1,0 +1,123 @@
+version: "3.8"
+
+services:
+  kafka:
+    image: apache/kafka:3.9.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 0
+      KAFKA_PROCESS_ROLES: controller,broker
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - microservice-net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # One-off job: explicitly creates the topic before producer/consumer start.
+  # This avoids relying on racy auto-create-on-first-use behaviour.
+  kafka-init:
+    image: apache/kafka:3.9.0
+    container_name: kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - microservice-net
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic demo.events --partitions 1 --replication-factor 1 && echo 'Topic demo.events is ready'"
+
+  # producer-service: ONLY publishes messages to Kafka. No consumer logic at all.
+  producer-service:
+    build:
+      context: ./producer-service
+    container_name: producer-service
+    ports:
+      - "3001:3000"
+    environment:
+      PORT: 3000
+      KAFKA_BROKER: kafka:9092
+      KAFKA_CLIENT_ID: producer-service
+      KAFKA_TOPIC: demo.events
+    depends_on:
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    networks:
+      - microservice-net
+
+  # consumer-service: ONLY consumes messages from Kafka. No producer/API to publish.
+  consumer-service:
+    build:
+      context: ./consumer-service
+    container_name: consumer-service
+    environment:
+      KAFKA_BROKER: kafka:9092
+      KAFKA_CLIENT_ID: consumer-service
+      KAFKA_GROUP_ID: consumer-service-group
+      KAFKA_TOPIC: demo.events
+    depends_on:
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    networks:
+      - microservice-net
+
+  # python-producer-service: ONLY publishes messages to Kafka (FastAPI + kafka-python).
+  python-producer-service:
+    build:
+      context: ./python-producer-service
+    container_name: python-producer-service
+    ports:
+      - "3003:3000"
+    environment:
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: demo.events
+    depends_on:
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    networks:
+      - microservice-net
+
+  # go-consumer-service: ONLY consumes messages from Kafka (Go + kafka-go).
+  go-consumer-service:
+    build:
+      context: ./go-consumer-service
+    container_name: go-consumer-service
+    environment:
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: demo.events
+      KAFKA_GROUP_ID: go-consumer-service-group
+    depends_on:
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    networks:
+      - microservice-net
+
+volumes:
+  kafka_data:
+    driver: local
+
+networks:
+  microservice-net:
+    driver: bridge
