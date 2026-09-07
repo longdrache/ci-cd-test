@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = 'docker.io/longdrache'
+        DOCKER_REGISTRY = 'docker.io/doctormeteno'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
 
