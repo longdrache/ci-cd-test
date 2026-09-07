@@ -2,11 +2,16 @@ FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod ./
-COPY main.go ./
+COPY go.mod go.sum ./
 
-# go.sum is generated here since it isn't checked in; requires network access at build time.
-RUN go mod tidy && go build -o consumer main.go
+ENV GOPROXY=https://proxy.golang.org,direct
+ENV GONOSUMCHECK=*
+ENV GONOSUMDB=*
+
+RUN go mod download
+
+COPY main.go ./
+RUN go build -o consumer main.go
 
 FROM alpine:3.20
 
