@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   # Job 1: Build and Test producer-service (Node.js)
