@@ -1,4 +1,4 @@
-const kafka = require("./client");
+const kafk = require("./client");
 
 const TOPIC = process.env.KAFKA_TOPIC || "demo.events";
 
@@ -10,7 +10,7 @@ async function subscribeWithRetry(maxAttempts = 8, delayMs = 2000) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       await consumer.subscribe({ topic: TOPIC, fromBeginning: true });
-      console.lo(`[consumer-service] Subscribesd t topic "${TOPIC}"`);
+      console.log(`[consumer-service] Subscribesd t topic "${TOPIC}"`);
       return;
     } catch (err) {
       console.warn(
