@@ -4,6 +4,8 @@ pipeline {
     environment {
         DOCKER_REGISTRY = 'docker.io/doctormeteno'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
+        TELEGRAM_BOT_TOKEN = credentials('telegram-bot-token')
+        TELEGRAM_CHAT_ID = credentials('telegram-chat-id')
     }
 
     stages {
@@ -75,10 +77,37 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline succeeded!'
+            script {
+                sh '''
+                    curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+                        -d chat_id="${TELEGRAM_CHAT_ID}" \
+                        -d text="✅ CI/CD SUCCESS
+
+Job: ${env.JOB_NAME}
+Build: #${env.BUILD_NUMBER}
+Branch: ${env.BRANCH_NAME}
+Commit: ${env.GIT_COMMIT}
+Author: ${env.GIT_AUTHOR}
+
+All services built and pushed successfully!"
+                '''
+            }
         }
         failure {
-            echo 'Pipeline failed!'
+            script {
+                sh '''
+                    curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+                        -d chat_id="${TELEGRAM_CHAT_ID}" \
+                        -d text="❌ CI/CD FAILED
+
+Job: ${env.JOB_NAME}
+Build: #${env.BUILD_NUMBER}
+Branch: ${env.BRANCH_NAME}
+Author: ${env.GIT_AUTHOR}
+
+Please check Jenkins for details!"
+                '''
+            }
         }
     }
 }
