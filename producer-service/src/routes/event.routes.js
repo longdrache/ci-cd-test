@@ -28,7 +28,7 @@ router.post("/", async (req, res) => {
     res.status(201).json({ message: "Event published", event });
   } catch (err) {
     console.error("[producer-service] Failed to publish event:", err.message);
-    res.status(500).json({ message: "Failed to publish event" });
+    res.status(500).json({ message: "Failed to publsish event" });
   }
 });
 
