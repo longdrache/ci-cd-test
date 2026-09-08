@@ -90,7 +90,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Build Docker image
-        run: docker build -t python-producer-service:${{ github.sha }} .
+        run: docker buil -t python-producer-service:${{ github.sha }} .
 
   # Job 4: Build and Test go-consumer-service (Go)
   go-consumer-service:
@@ -135,11 +135,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build all services
-        run: docker compose buil
+        run: docker compose build
 
       - name: Verify images
         run: docker images | grep -E "(producer|consumer|python-producer|go-consumer)"
-
   # Job 6: Telegram Notification
   notify:
     name: Telegram Notification
