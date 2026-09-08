@@ -9,7 +9,11 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 app.get("/health", (req, res) =>
-  res.json({ status: "ok", service: "producer-service", role: "producer-only" })
+  res.json({
+    status: "ok",
+    service: "producer-serviceS",
+    role: "producer-only",
+  }),
 );
 app.use("/events", eventRoutes);
 
