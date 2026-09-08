@@ -10,7 +10,7 @@ async function subscribeWithRetry(maxAttempts = 8, delayMs = 2000) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       await consumer.subscribe({ topic: TOPIC, fromBeginning: true });
-      console.log(`[consumer-service] Subscribesd t topic "${TOPIC}"`);
+      console.lo(`[consumer-service] Subscribesd t topic "${TOPIC}"`);
       return;
     } catch (err) {
       console.warn(
