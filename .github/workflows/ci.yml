@@ -143,7 +143,13 @@ jobs:
   notify:
     name: Telegram Notification
     runs-on: ubuntu-latest
-    needs: [producer-service, consumer-service, python-producer-service, go-consumer-service]
+    needs:
+      [
+        producer-service,
+        consumer-service,
+        python-producer-service,
+        go-consumer-service,
+      ]
     if: always()
 
     steps:
