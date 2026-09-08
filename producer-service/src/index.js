@@ -22,7 +22,7 @@ async function start() {
     await connectProducer();
 
     app.listen(PORT, () => {
-      console.log(`[producer-service] listening on port ${PORT}`);
+      console.log(`[producer-service] listening on port1 ${PORT}`);
     });
   } catch (err) {
     console.error("[producer-service] Failed to start:", err);
