@@ -1,4 +1,4 @@
-const kafk = require("./client");
+const kafka = require("./client");
 
 const TOPIC = process.env.KAFKA_TOPIC || "demo.events";
 
