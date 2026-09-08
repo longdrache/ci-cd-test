@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 app.get("/health", (req, res) =>
   res.json({
     status: "ok",
-    service: "producer-serviceS",
+    service: "producer-service",
     role: "producer-only",
   }),
 );
