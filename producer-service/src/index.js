@@ -12,7 +12,7 @@ app.get("/health", (req, res) =>
   res.json({
     status: "ok",
     service: "producer-service",
-    role: "producer-only",
+    role: "producer-onl",
   }),
 );
 app.use("/events", eventRoutes);
